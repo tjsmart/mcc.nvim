@@ -48,7 +48,6 @@ function M.rerun()
 end
 
 function M.setup()
-	local terminal = require("mcc.terminal")
 	local editor = require("mcc.editor")
 
 	editor.on_enter(function()
@@ -56,26 +55,6 @@ function M.setup()
 		vim.api.nvim_win_hide(vim.api.nvim_get_current_win())
 		M.run(lnum)
 	end)
-
-	vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>")
-	vim.keymap.set({ "n", "t" }, "<C-e>", terminal.toggle)
-
-	vim.keymap.set({ "n", "t" }, "<C-m>e", M.editor)
-	vim.keymap.set({ "n", "t" }, "<leader>r", M.reload)
-
-	local function run_with(index)
-		return function()
-			M.run(index)
-		end
-	end
-	vim.keymap.set({ "n", "t" }, "<C-m>1", run_with(1))
-	vim.keymap.set({ "n", "t" }, "<C-m>2", run_with(2))
-	vim.keymap.set({ "n", "t" }, "<C-m>3", run_with(3))
-	vim.keymap.set({ "n", "t" }, "<C-m>4", run_with(4))
-	vim.keymap.set({ "n", "t" }, "<C-m>5", run_with(5))
-	vim.keymap.set({ "n", "t" }, "<C-m>r", M.rerun)
-
-	print("setup!")
 end
 
 return M
