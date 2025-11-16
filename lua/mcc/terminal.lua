@@ -3,10 +3,12 @@ local M = {}
 ---@class __TerminalState
 ---@field buffer integer
 ---@field window integer
+---@field last_send string
 ---@type __TerminalState
 local state = {
 	buffer = -1,
 	window = -1,
+	last_send = "",
 }
 
 ---@return vim.api.keyset.win_config
@@ -86,7 +88,18 @@ end
 function M.send(text)
 	M.open()
 	local job = vim.b[state.buffer].terminal_job_id
+	state.last_send = text
 	vim.fn.chansend(job, text)
+end
+
+---@param default string | nil
+function M.resend(default)
+	local text = state.last_send or default
+	if text == nil then
+		vim.notify("nothing sent yet and no default provided", vim.log.levels.WARN)
+	else
+		M.send(text)
+	end
 end
 
 -- handle window resizing
