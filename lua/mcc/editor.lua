@@ -1,17 +1,21 @@
 local M = {}
 
-local state = {
-	---@type table<string, integer>
-	windows = {},
-	---@type function
-	on_enter_cb = nil,
-}
-
----@class ResizeOpts
+---@class WindowOpts
 ---@field relwidth number
 ---@field relheight number
 
----@param opts ResizeOpts | nil
+---@class __EditorState
+---@field window integer
+---@field window_opts WindowOpts | nil
+---@field on_enter_cb function | nil
+---@type __EditorState
+local state = {
+	window = -1,
+	window_opts = nil,
+	on_enter_cb = nil,
+}
+
+---@param opts WindowOpts | nil
 ---@return vim.api.keyset.win_config
 local function window_opts(opts)
 	opts = opts or {}
@@ -34,14 +38,14 @@ local function window_opts(opts)
 end
 
 ---@param window integer
----@param opts ResizeOpts
+---@param opts WindowOpts | nil
 local function resize_window(window, opts)
 	vim.api.nvim_win_set_config(window, window_opts(opts))
 end
 
 ---@param buffer integer
 ---@return integer window
----@param opts ResizeOpts | nil
+---@param opts WindowOpts | nil
 local function create_window(buffer, opts)
 	local win = vim.api.nvim_open_win(buffer, true, window_opts(opts))
 	vim.wo[win].number = true
@@ -59,23 +63,15 @@ local function create_window(buffer, opts)
 	return win
 end
 
--- function M.resize(filename, opts)
--- end
-
----@class OpenOpts: ResizeOpts
-
 ---@param filename string
----@param opts OpenOpts
+---@param opts WindowOpts | nil
 function M.open(filename, opts)
 	local buf = vim.fn.bufadd(filename)
 	vim.fn.bufload(buf)
 
-	local window = state.windows[filename]
-	if window and vim.api.nvim_win_is_valid(window) then
-		vim.api.nvim_set_current_win(window)
-	else
-		window = create_window(buf, opts)
-		state.windows[filename] = window
+	if not vim.api.nvim_win_is_valid(state.window) then
+		state.window = create_window(buf, opts)
+		state.window_opts = opts
 	end
 end
 
@@ -85,5 +81,14 @@ end
 function M.on_enter(cb)
 	state.on_enter_cb = cb
 end
+
+-- window resizing
+vim.api.nvim_create_autocmd("VimResized", {
+	callback = function()
+		if vim.api.nvim_win_is_valid(state.window) then
+			resize_window(state.window, state.window_opts)
+		end
+	end,
+})
 
 return M
