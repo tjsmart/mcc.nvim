@@ -1,0 +1,115 @@
+*mcc.txt*                           Mission Control Center for Neovim          *mcc*
+
+==============================================================================
+INTRODUCTION                                                          *mcc-intro*
+
+
+mcc.nvim provides a way to easily define, modify, and execute
+"Launch Codes" - custom commands that you want to trigger quickly.
+
+Features:
+  • Toggleable terminal window (floating or split)
+  • Configurable Launch Codes
+  • Project-specific Launch Code storage
+  • Lua API for sending commands to the terminal
+  • Fast execution workflow for tests, builds, scripts, etc.
+
+  • Launch Codes — map arbitrary shell commands to numbered slots
+  • Toggle Terminal — open/close the MCC terminal in a floating or split window
+  • One-key execution -  with `mcc.run(<index>)`
+  • Per-project configuration
+  • Runs commands inside a persistent terminal
+
+==============================================================================
+INSTALLATION                                                       *mcc-install*
+
+Install using your favorite plugin manager.
+
+Example (lazy.nvim):
+
+>lua
+    {
+        "tjsmart/mcc.nvim",
+        config = function()
+            require("mcc").setup()
+        end
+    }
+
+After installing, run:
+
+>
+    :helptags ALL
+
+so this help file becomes available.
+
+==============================================================================
+LUA API                                                               *mcc-api*
+
+All functions are accessed through:
+
+>lua
+    local mcc = require("mcc")
+
+Available functions:
+
+*mcc.terminal()*
+        Toggle the MCC terminal window.
+
+*mcc.editor()*
+        Open the MCC Launch Code editor
+
+*mcc.run(index)*
+        Run Launch Code `{index}` inside the MCC terminal.
+
+*mcc.rerun()*
+        Rerun the most recently ran Launch Code
+
+*mcc.notes()*
+        Open project notes
+
+==============================================================================
+KEYMAPS                                                            *mcc-keymaps*
+
+Example mappings:
+
+>lua
+    local mcc = require("mcc")
+
+    -- Toggle open/close the MCC terminal
+    vim.keymap.set({ "n", "t" }, "<C-e>", mcc.terminal)
+
+    -- Toggle open/close the MCC launch code editor
+    vim.keymap.set({ "n", "t" }, "<C-m>e", mcc.editor)
+
+    -- Keymaps to run launch codes
+    vim.keymap.set({ "n", "t" }, "<C-m>1", function() mcc.run(1) end)
+    vim.keymap.set({ "n", "t" }, "<C-m>2", function() mcc.run(2) end)
+    vim.keymap.set({ "n", "t" }, "<C-m>3", function() mcc.run(3) end)
+    vim.keymap.set({ "n", "t" }, "<C-m>4", function() mcc.run(4) end)
+    vim.keymap.set({ "n", "t" }, "<C-m>5", function() mcc.run(5) end)
+    vim.keymap.set({ "n", "t" }, "<C-m>r", mcc.rerun)
+
+    -- Open mcc notes
+    vim.keymap.set({ "n", "t" }, "<C-m>n", mcc.notes)
+
+==============================================================================
+PROJECT STORAGE                                                 *mcc-project-storage*
+
+mcc.nvim stores per-project Launch Codes under:
+
+    {stdpath("data")}/mcc/<hash>/
+
+Where `<hash>` is derived from the project root directory path.
+
+This allows each project to have isolated Launch Codes that persist across
+sessions and do not conflict with other projects.
+
+
+==============================================================================
+CREDITS                                                             *mcc-credits*
+
+mcc.nvim — Mission Control Center for Neovim  
+Created by Your Name <tsmart29@hotmail.com>  
+MIT License.
+
+==============================================================================
