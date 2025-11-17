@@ -6,15 +6,6 @@ local notes = require("mcc.notes")
 local parser = require("mcc.parser")
 local terminal = require("mcc.terminal")
 
-function M.reload()
-	package.loaded["mcc"] = nil
-	package.loaded["mcc.editor"] = nil
-	package.loaded["mcc.parser"] = nil
-	package.loaded["mcc.terminal"] = nil
-	package.loaded["mcc.notes"] = nil
-	require("mcc").setup()
-end
-
 ---@return string
 local function launch_file()
 	return fs.project_dir() .. "/" .. "codes"
@@ -50,6 +41,11 @@ end
 ---Opens project notes
 function M.notes()
 	notes.open(notes_file())
+end
+
+---Toggle the terminal
+function M.terminal()
+	terminal.toggle()
 end
 
 function M.setup()
