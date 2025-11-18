@@ -90,6 +90,24 @@ function Terminal:open()
 				end)
 			end,
 		})
+
+		vim.api.nvim_create_autocmd("WinLeave", {
+			buffer = self.buffer,
+			callback = function()
+				vim.schedule(function()
+					if vim.api.nvim_win_is_valid(self.window) then
+						vim.api.nvim_win_close(self.window, true)
+					end
+				end)
+			end,
+		})
+
+		vim.api.nvim_create_autocmd("BufEnter", {
+			buffer = self.buffer,
+			callback = function()
+				vim.cmd.startinsert()
+			end,
+		})
 	end
 
 	vim.cmd.startinsert()
