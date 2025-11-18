@@ -4,7 +4,11 @@ local editor = require("mcc.editor")
 local fs = require("mcc.fs")
 local notes = require("mcc.notes")
 local parser = require("mcc.parser")
-local terminal = require("mcc.terminal")
+
+local state = {
+	terminal = require("mcc.terminal").Terminal:new(),
+	last_send_cmd = nil,
+}
 
 ---@return string
 local function launch_file()
@@ -25,12 +29,17 @@ function M.run(index)
 		vim.notify(msg, vim.log.levels.WARN)
 		return
 	end
-	terminal.send(code .. "\n")
+	state.last_send_cmd = code .. "\n"
+	state.terminal:send(state.last_send_cmd)
 end
 
 ---Rerun the most recently ran launch code
 function M.rerun()
-	terminal.resend()
+	if state.last_send_cmd == nil then
+		vim.notify("no previously ran command", vim.log.levels.WARN)
+	else
+		state.terminal:send(state.last_send_cmd)
+	end
 end
 
 ---@return string
@@ -45,7 +54,7 @@ end
 
 ---Toggle the terminal
 function M.terminal()
-	terminal.toggle()
+	state.terminal:toggle()
 end
 
 function M.setup()

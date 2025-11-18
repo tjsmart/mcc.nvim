@@ -1,16 +1,5 @@
 local M = {}
 
----@class __TerminalState
----@field buffer integer
----@field window integer
----@field last_send string
----@type __TerminalState
-local state = {
-	buffer = -1,
-	window = -1,
-	last_send = "",
-}
-
 ---@return vim.api.keyset.win_config
 local function window_opts()
 	local width = math.floor(vim.o.columns * 1)
@@ -44,7 +33,6 @@ local function resize_window(window)
 end
 
 ---@param buffer integer
----@return TerminalState
 local function create_window(buffer)
 	if not vim.api.nvim_buf_is_valid(buffer) then
 		buffer = vim.api.nvim_create_buf(false, true)
@@ -54,63 +42,82 @@ local function create_window(buffer)
 	return { buffer = buffer, window = window }
 end
 
---- Opens the terminal, if it is not already open
-function M.open()
-	if not vim.api.nvim_win_is_valid(state.window) then
-		state = create_window(state.buffer)
+---@class Terminal
+---@field cmd string | nil
+---@field buffer integer
+---@field window integer
+Terminal = {}
+Terminal.__index = Terminal
+
+---@class __TerminalOpts
+---@field cmd string | nil Command to execute when window is opened.
+
+---@param opts __TerminalOpts | nil
+---@return Terminal
+function Terminal:new(opts)
+	vim.api.nvim_create_autocmd("VimResized", {
+		callback = function()
+			if vim.api.nvim_win_is_valid(self.window) then
+				vim.schedule(function()
+					resize_window(self.window)
+				end)
+			end
+		end,
+	})
+
+	opts = opts or {}
+	return setmetatable({
+		cmd = opts.cmd or nil,
+		window = -1,
+		buffer = -1,
+	}, self)
+end
+
+function Terminal:open()
+	if not vim.api.nvim_win_is_valid(self.window) then
+		local win = create_window(self.buffer)
+		self.window = win.window
+		self.buffer = win.buffer
 	end
 
-	if vim.bo[state.buffer].buftype ~= "terminal" then
-		vim.cmd.terminal()
+	if vim.bo[self.buffer].buftype ~= "terminal" then
+		if self.cmd ~= nil then
+			vim.cmd.terminal(self.cmd)
+		else
+			vim.cmd.terminal()
+		end
 
 		-- terminal won't automatically exit if there was
 		-- an error, this will force it to exit
 		vim.api.nvim_create_autocmd("TermClose", {
-			buffer = state.buffer,
-			callback = force_exit,
+			buffer = self.buffer,
+			callback = function()
+				vim.schedule(function()
+					vim.api.nvim_win_close(self.window, true)
+					vim.api.nvim_buf_delete(self.buffer, { force = true })
+				end)
+			end,
 		})
 	end
 
 	vim.cmd.startinsert()
 end
 
---- Toggles the terminal open/close
-function M.toggle()
-	if not vim.api.nvim_win_is_valid(state.window) then
-		M.open()
+function Terminal:toggle()
+	if not vim.api.nvim_win_is_valid(self.window) then
+		self:open()
 	else
-		vim.api.nvim_win_hide(state.window)
+		vim.api.nvim_win_hide(self.window)
 	end
 end
 
---- Sends text to the terminal
---- @param text string
-function M.send(text)
-	M.open()
-	local job = vim.b[state.buffer].terminal_job_id
-	state.last_send = text
+---@param text string
+function Terminal:send(text)
+	self:open()
+	local job = vim.b[self.buffer].terminal_job_id
 	vim.fn.chansend(job, text)
 end
 
----@param default string | nil
-function M.resend(default)
-	local text = state.last_send or default
-	if text == nil then
-		vim.notify("nothing sent yet and no default provided", vim.log.levels.WARN)
-	else
-		M.send(text)
-	end
-end
-
--- handle window resizing
-vim.api.nvim_create_autocmd("VimResized", {
-	callback = function()
-		if vim.api.nvim_win_is_valid(state.window) then
-			vim.schedule(function()
-				resize_window(state.window)
-			end)
-		end
-	end,
-})
+M.Terminal = Terminal
 
 return M
