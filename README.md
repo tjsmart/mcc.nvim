@@ -78,6 +78,11 @@ vim.keymap.set({ "n", "t" }, "<C-m>r", mcc.rerun)
 
 -- Open mcc notes
 vim.keymap.set({ "n", "t" }, "<C-m>n", mcc.notes)
+
+-- Launch a TUI (for example, lazygit)
+local Terminal = require('mcc.terminal').Terminal
+local lg = Terminal:new({ cmd = 'lazygit' })
+vim.keymap.set("n", "<leader>lg", function() lg:toggle() end)
 ```
 
 ---
