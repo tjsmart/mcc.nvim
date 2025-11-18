@@ -19,14 +19,6 @@ local function window_opts()
 	}
 end
 
-local function force_exit()
-	if vim.api.nvim_win_is_valid(state.window) then
-		vim.schedule(function()
-			vim.api.nvim_buf_delete(state.buffer, { force = true })
-		end)
-	end
-end
-
 ---@param window integer
 local function resize_window(window)
 	vim.api.nvim_win_set_config(window, window_opts())
