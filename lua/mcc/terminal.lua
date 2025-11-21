@@ -2,9 +2,10 @@ local M = {}
 
 ---@return vim.api.keyset.win_config
 local function window_opts()
+	local lines_available = vim.o.lines - vim.o.cmdheight
 	local width = math.floor(vim.o.columns * 1)
-	local height = math.floor(vim.o.lines * 1)
-	local row = math.floor((vim.o.lines - height) / 2)
+	local height = math.floor(lines_available * 1)
+	local row = math.floor((lines_available - height) / 2)
 	local col = math.floor((vim.o.columns - width) / 2)
 
 	---@type vim.api.keyset.win_config
