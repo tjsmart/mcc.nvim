@@ -6,7 +6,13 @@ local notes = require("mcc.notes")
 local parser = require("mcc.parser")
 
 local state = {
-	terminal = require("mcc.terminal").Terminal:new(),
+	terminal = require("mcc.terminal").Terminal:new({
+		win_conf = {
+			title = " mcc ",
+			border = { "", "═", "", "", "", "═", "", "" },
+			title_pos = "left",
+		},
+	}),
 	last_send_cmd = nil,
 }
 
