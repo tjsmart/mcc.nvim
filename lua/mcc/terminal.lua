@@ -37,6 +37,7 @@ end
 
 ---@class Terminal
 ---@field cmd string | nil
+---@field win_conf vim.api.keyset.win_config | nil
 ---@field buffer integer
 ---@field window integer
 Terminal = {}
@@ -44,6 +45,7 @@ Terminal.__index = Terminal
 
 ---@class __TerminalOpts
 ---@field cmd string | nil Command to execute when window is opened.
+---@field win_conf vim.api.keyset.win_config | nil
 
 ---@param opts __TerminalOpts | nil
 ---@return Terminal
@@ -60,7 +62,8 @@ function Terminal:new(opts)
 
 	opts = opts or {}
 	return setmetatable({
-		cmd = opts.cmd or nil,
+		cmd = opts.cmd,
+		win_conf = opts.win_conf,
 		window = -1,
 		buffer = -1,
 	}, self)
@@ -69,6 +72,9 @@ end
 function Terminal:open()
 	if not vim.api.nvim_win_is_valid(self.window) then
 		local win = create_window(self.buffer)
+		if self.win_conf ~= nil then
+			vim.api.nvim_win_set_config(win.window, self.win_conf)
+		end
 		self.window = win.window
 		self.buffer = win.buffer
 	end
